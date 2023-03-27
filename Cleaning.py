@@ -98,7 +98,6 @@ extract_ne(string)
 #concordance
 import nltk.corpus
 from nltk.text import Text
-nltk.download('gutenberg')
 
 text = Text(nltk.corpus.gutenberg.words('Complete_data .txt'))
 text.concordance('foolish')
@@ -116,6 +115,7 @@ freq_dist.most_common(20)
 filtered_text = [word for word in text if word.casefold() not in stopwords] #removing stopwords
 freq_dist = FreqDist(filtered_text)
 
+freq_dist.plot(20)
 freq_dist.plot(20,cumulative=True)
 
 #collocations
