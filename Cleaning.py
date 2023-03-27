@@ -7,6 +7,7 @@ Created on Sun Mar 26 20:39:09 2023
 
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
 import nltk
 from nltk import word_tokenize, sent_tokenize
 
@@ -46,7 +47,7 @@ filtered_list = [word for word in word_string if word.casefold() not in stopword
 # stemmed = [stremmer.stem(word) for word in filtered_list]
 
 #pos tagging
-tagged = pd.DataFrame(nltk.pos_tag(word_string), columns=['words','tag'])
+tagged = pd.DataFrame(nltk.pos_tag(filtered_list), columns=['words','tag'])
 
 punc = ['.',',','`','?',':',';','``',"''",'(',')']
 tagged['punc'] = tagged.tag.apply(lambda x: 1 if x in punc else 0)
@@ -56,8 +57,6 @@ tagged.tag.value_counts()
 
 #lemmatizing
 from nltk.stem import WordNetLemmatizer
-nltk.download('wordnet')
-nltk.download('omw-1.4')
 lemmatizer = WordNetLemmatizer()
 
 tagged['lemmatized'] = [lemmatizer.lemmatize(word) for word in tagged['words']]
@@ -81,16 +80,51 @@ tree = chink_parser.parse(list(zip(tagged['lemmatized'],tagged['tag'])))
 tree.draw()
 
 #using name entity recognition
-nltk.download("maxent_ne_chunker")
-nltk.download("words")
-
-tree = nltk.ne_chunk(list(zip(tagged['lemmatized'],tagged['tag'])))
+tree = nltk.ne_chunk(list(zip(tagged['lemmatized'],tagged['tag'])), binary=False)
 tree.draw()
 
+def extract_ne(text):
+    words = nltk.word_tokenize(text, language='english')
+    tags = nltk.pos_tag(words)
+    tree = nltk.ne_chunk(tags, binary=True)
+    return set(
+         " ".join(i[0] for i in t)
+         for t in tree
+         if hasattr(t, "label") and t.label() == "NE"
+     )
 
+extract_ne(string)
 
+#concordance
+import nltk.corpus
+from nltk.text import Text
+nltk.download('gutenberg')
 
+text = Text(nltk.corpus.gutenberg.words('Complete_data .txt'))
+text.concordance('foolish')
 
+text.dispersion_plot(['foolish','man','woman','acts'])
+
+#frequency distribution
+from nltk import FreqDist
+
+freq_dist = FreqDist(text)
+print(freq_dist)
+
+freq_dist.most_common(20)
+
+filtered_text = [word for word in text if word.casefold() not in stopwords] #removing stopwords
+freq_dist = FreqDist(filtered_text)
+
+freq_dist.plot(20,cumulative=True)
+
+#collocations
+text.collocations()
+
+lems = [lemmatizer.lemmatize(word) for word in text] #lemmatizing to see if more words are detected
+lem_text = nltk.Text(lems)
+
+lem_text.collocations() #includes bodily act
 
 
 
